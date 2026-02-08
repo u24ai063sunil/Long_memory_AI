@@ -1,0 +1,89 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# virtual environments
+venv/
+.env/
+.envrc
+.venv/
+env/
+ENV/
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ==============================
+# Environment Variables (IMPORTANT)
+# ==============================
+.env
+
+# ==============================
+# IDE files
+# ==============================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ==============================
+# OS files
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# ChromaDB Persistent Storage
+# (VERY IMPORTANT — huge + local)
+# ==============================
+chroma_memory/
+chroma_db/
+
+# ==============================
+# HuggingFace / SentenceTransformer cache
+# (otherwise repo becomes 1GB+)
+# ==============================
+.cache/
+huggingface/
+*.safetensors
+
+# Windows cache
+C:/Users/*/.cache/huggingface/
+C:/Users/*/.cache/torch/
+
+# ==============================
+# Logs
+# ==============================
+*.log
+logs/
+
+# ==============================
+# Testing & temp
+# ==============================
+*.tmp
+*.temp
+*.bak
+
+# ==============================
+# Uvicorn / FastAPI runtime
+# ==============================
+*.sqlite3
+*.db
+
+# ==============================
+# Build artifacts
+# ==============================
+dist/
+build/
+*.egg-info/
+
+# ==============================
+# Demo artifacts
+# ==============================
+demo_outputs/
