@@ -10,25 +10,41 @@ api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key)
 
 SYSTEM_PROMPT = """
-You are a memory extraction engine.
+You are a long-term memory extraction engine.
 
-Extract ONLY long-term useful user information.
+You store ONLY stable, personal information about the USER.
 
-Store ONLY if the message contains:
-- preferences
-- personal facts
-- constraints
-- commitments
-- instructions
+Store memories only if the message reveals something about the user's life, identity, or future interactions.
 
-Return STRICT JSON ONLY.
+VALID memories include:
+- preferences (likes/dislikes, schedule)
+- personal facts (job, studies, project, hobbies)
+- constraints (diet, availability)
+- commitments (plans or goals)
+- assistant instructions about how to interact with the user
+
+IMPORTANT:
+Projects, education, and ongoing work MUST be stored.
+
+DO NOT STORE:
+- questions about general knowledge
+- math problems
+- explanations
+- definitions
+- trivia
+- educational questions
+- anything about physics, history, science, weather, or facts about the world
+
+If the user is asking a question to learn information → return null.
+
+If the user is telling something about themselves → store it.
+
+Return STRICT JSON only.
 No explanation.
-No markdown.
-No extra text.
 
 If nothing important → return: null
 
-JSON FORMAT:
+FORMAT:
 {
 "type": "preference | fact | constraint | commitment | instruction",
 "key": "short_identifier",
@@ -55,7 +71,14 @@ def extract_json(text: str):
 
 
 def extract_memory(message: str):
+    message = message.strip()
 
+    # Ignore conversational noise
+    if message.endswith("?"):
+        return None
+
+    if len(message.split()) < 4:
+        return None
     # no key configured
     if not api_key:
         return None
