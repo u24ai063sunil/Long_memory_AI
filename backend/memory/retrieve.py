@@ -1,11 +1,17 @@
 from backend.memory.chroma_store import memory_collection
 
+
 def retrieve_memories(session_id, query, k=5):
 
     results = memory_collection.query(
         query_texts=[query],
         n_results=k,
-        where={"session_id": session_id}
+        where={
+            "$and": [
+                {"session_id": session_id},
+                {"is_active": True}
+            ]
+        }
     )
 
     memories = []
@@ -22,3 +28,19 @@ def retrieve_memories(session_id, query, k=5):
         })
 
     return memories
+
+
+# -------- KEY LOOKUP FOR UPDATE --------
+def retrieve_by_key(session_id, key):
+
+    results = memory_collection.get(
+        where={
+            "$and": [
+                {"session_id": session_id},
+                {"key": key},
+                {"is_active": True}
+            ]
+        }
+    )
+
+    return results

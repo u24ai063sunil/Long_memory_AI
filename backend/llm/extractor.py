@@ -172,7 +172,7 @@ def extract_memory(message: str):
     if message.endswith("?"):
         return None
 
-    if len(message.split()) < 4:
+    if len(message.split()) < 2:
         return None
     # no key configured
     if not api_key:
