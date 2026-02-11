@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from sentence_transformers import SentenceTransformer, util
+import numpy as np
 
 from backend.memory.chroma_store import memory_collection
 from backend.memory.retrieve import retrieve_by_key
@@ -9,10 +10,23 @@ from backend.memory.retrieve import retrieve_by_key
 
 # ---------------------------------------------------------
 # EMBEDDING MODEL (for duplicate detection)
+# Lazy-load the model to avoid heavy imports at module import time
 # ---------------------------------------------------------
-model = SentenceTransformer("all-MiniLM-L6-v2")
+_model = None
 
 SIM_THRESHOLD = 0.90   # cosine similarity threshold
+
+
+def _get_model():
+    global _model
+    if _model is None:
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _model
+
+
+def get_embedding(text, convert_to_tensor=True):
+    """Return embedding for `text`. `text` may be a string or list of strings."""
+    return _get_model().encode(text, convert_to_tensor=convert_to_tensor)
 
 
 # ---------------------------------------------------------
@@ -42,34 +56,79 @@ def build_memory_sentence(memory):
 # SEMANTIC DUPLICATE CHECK
 # ---------------------------------------------------------
 def is_duplicate(memory_text, session_id):
+    # compute embedding as a plain list (Chroma expects python lists)
+    new_emb = get_embedding(memory_text, convert_to_tensor=False)
+    if hasattr(new_emb, "tolist"):
+        new_emb = new_emb.tolist()
 
-    results = memory_collection.get(
-        where={
-            "$and": [
-                {"session_id": session_id},
-                {"is_active": True}
-            ]
-        }
-    )
+    # Prefer vector query for efficient duplicate detection
+    try:
+        # chroma's query API may accept `query_embeddings` (newer) or `embedding`
+        try:
+            results = memory_collection.query(
+                query_embeddings=[new_emb],
+                n_results=3,
+                where={"session_id": session_id, "is_active": True},
+                include=["embeddings"]
+            )
+        except TypeError:
+            results = memory_collection.query(
+                embedding=[new_emb],
+                n_results=3,
+                where={"session_id": session_id, "is_active": True},
+                include=["embeddings"]
+            )
 
-    if not results or not results.get("documents"):
-        return False
+        emb_lists = results.get("embeddings") or []
+        if emb_lists and len(emb_lists) > 0:
+            returned = emb_lists[0]
+            if returned:
+                # compute cosine similarities
+                sims = []
+                new_arr = np.array(new_emb, dtype=float)
+                new_norm = np.linalg.norm(new_arr)
+                for e in returned:
+                    e_arr = np.array(e, dtype=float)
+                    denom = (new_norm * np.linalg.norm(e_arr))
+                    if denom == 0:
+                        sims.append(0.0)
+                    else:
+                        sims.append(float(np.dot(new_arr, e_arr) / denom))
 
-    existing_docs = results["documents"]
+                max_score = max(sims) if sims else 0.0
+                if max_score > SIM_THRESHOLD:
+                    print(f"⚠️ Duplicate skipped (similarity={max_score:.2f})")
+                    return True
 
-    if len(existing_docs) == 0:
-        return False
+    except Exception:
+        # fallback to previous approach: fetch documents and compare embeddings
+        results = memory_collection.get(
+            where={
+                "$and": [
+                    {"session_id": session_id},
+                    {"is_active": True}
+                ]
+            }
+        )
 
-    new_emb = model.encode(memory_text, convert_to_tensor=True)
-    old_emb = model.encode(existing_docs, convert_to_tensor=True)
+        if not results or not results.get("documents"):
+            return False
 
-    scores = util.cos_sim(new_emb, old_emb)[0]
+        existing_docs = results["documents"]
 
-    max_score = float(scores.max())
+        if len(existing_docs) == 0:
+            return False
 
-    if max_score > SIM_THRESHOLD:
-        print(f"⚠️ Duplicate skipped (similarity={max_score:.2f})")
-        return True
+        # use model tensors for cosine similarity when comparing against raw docs
+        new_emb_t = get_embedding(memory_text, convert_to_tensor=True)
+        old_emb_t = get_embedding(existing_docs, convert_to_tensor=True)
+
+        scores = util.cos_sim(new_emb_t, old_emb_t)[0]
+        max_score = float(scores.max())
+
+        if max_score > SIM_THRESHOLD:
+            print(f"⚠️ Duplicate skipped (similarity={max_score:.2f})")
+            return True
 
     return False
 
@@ -117,6 +176,11 @@ def store_memory(memory):
     # -------- STORE NEW MEMORY --------
     memory_id = str(uuid.uuid4())
 
+    # compute and store embedding alongside the memory for fast future queries
+    emb_to_store = get_embedding(memory_text, convert_to_tensor=False)
+    if hasattr(emb_to_store, "tolist"):
+        emb_to_store = emb_to_store.tolist()
+
     memory_collection.add(
         documents=[memory_text],
         metadatas=[{
@@ -129,7 +193,8 @@ def store_memory(memory):
             "is_active": True,
             "updated_at": ""   # never None (Chroma safe)
         }],
-        ids=[memory_id]
+        ids=[memory_id],
+        embeddings=[emb_to_store]
     )
 
     print(f"✅ Memory stored (active): {memory_text}")

@@ -7,7 +7,14 @@ from groq import Groq
 load_dotenv()
 
 api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=api_key)
+# Lazily initialize Groq client; protect import-time initialization
+client = None
+if api_key:
+    try:
+        client = Groq(api_key=api_key)
+    except Exception as e:
+        print("Warning: failed to initialize Groq client:", e)
+        client = None
 
 # SYSTEM_PROMPT = """
 # You are a long-term memory extraction engine.
@@ -174,8 +181,8 @@ def extract_memory(message: str):
 
     if len(message.split()) < 2:
         return None
-    # no key configured
-    if not api_key:
+    # no key configured or client failed to initialize
+    if not api_key or not client:
         return None
 
     try:
