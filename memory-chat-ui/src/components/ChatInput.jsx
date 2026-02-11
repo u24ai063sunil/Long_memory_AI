@@ -4,25 +4,32 @@ const ChatInput = ({ onSend }) => {
 
   const [text, setText] = useState("");
 
-  const handleSend = () => {
+  const send = () => {
+    if (!text.trim()) return;
     onSend(text);
     setText("");
   };
 
-  const handleKey = (e) => {
-    if (e.key === "Enter") handleSend();
-  };
-
   return (
-    <div className="chat-input">
-      <input
-        type="text"
-        placeholder="Type your message..."
+    <div className="input-wrapper">
+
+      <textarea
+        rows="1"
+        placeholder="Message Memory Assistant..."
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={handleKey}
+        onKeyDown={(e)=>{
+          if(e.key==="Enter" && !e.shiftKey){
+            e.preventDefault();
+            send();
+          }
+        }}
       />
-      <button onClick={handleSend}>Send</button>
+
+      <button className="send-btn" onClick={send}>
+        ➤
+      </button>
+
     </div>
   );
 };

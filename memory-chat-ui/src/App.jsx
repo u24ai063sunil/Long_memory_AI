@@ -1,26 +1,43 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ChatWindow from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
+import Login from "./components/Login";
 import "./styles/chat.css";
 
 function App() {
 
-  // VERY IMPORTANT: session id for memory
-  const [sessionId] = useState(() => {
-    let id = localStorage.getItem("session_id");
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem("session_id", id);
-    }
-    return id;
+  /* ---------------- USER LOGIN STATE ---------------- */
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
   });
 
+  /* ---------------- CHAT STATE ---------------- */
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
 
+  /* ---------------- SESSION ID (VERY IMPORTANT) ----------------
+     Now session is tied to GOOGLE ACCOUNT
+     Every user = separate memory database
+  */
+  const sessionId = user ? user.sub : null;
+
+  /* ---------------- LOGOUT ---------------- */
+  const logout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+    setMessages([]);
+  };
+
+  /* ---------------- CLEAR CHAT ---------------- */
+  const clearChat = () => {
+    setMessages([]);
+  };
+
+  /* ---------------- SEND MESSAGE ---------------- */
   const sendMessage = async (text) => {
 
-    if (!text.trim()) return;
+    if (!text.trim() || !sessionId) return;
 
     const userMsg = { sender: "user", text };
     setMessages(prev => [...prev, userMsg]);
@@ -34,7 +51,7 @@ function App() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          session_id: sessionId,
+          session_id: sessionId,   // 🔥 USER BASED MEMORY
           message: text
         })
       });
@@ -52,22 +69,48 @@ function App() {
     } catch (err) {
       setMessages(prev => [...prev, {
         sender: "bot",
-        text: "Server connection failed."
+        text: "⚠️ Server connection failed. Is FastAPI running?"
       }]);
     }
 
     setTyping(false);
   };
 
+  /* ---------------- LOGIN SCREEN ---------------- */
+  if (!user) return <Login setUser={setUser} />;
+
+  /* ---------------- CHAT UI ---------------- */
   return (
     <div className="app">
+
+      {/* HEADER */}
       <div className="header">
-        🧠 Long-Term Memory AI Assistant
+
+        <div className="title">
+          🧠 Memory AI Assistant
+        </div>
+
+        <div className="user-area">
+          <img src={user.picture} alt="avatar" className="avatar"/>
+          <span className="username">{user.name}</span>
+
+          <button className="clear-btn" onClick={clearChat}>
+            Clear
+          </button>
+
+          <button className="logout-btn" onClick={logout}>
+            Logout
+          </button>
+        </div>
+
       </div>
 
+      {/* CHAT WINDOW */}
       <ChatWindow messages={messages} typing={typing} />
 
+      {/* INPUT */}
       <ChatInput onSend={sendMessage} />
+
     </div>
   );
 }
