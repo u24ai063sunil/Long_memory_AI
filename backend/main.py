@@ -55,6 +55,9 @@ def memory_pipeline(session_id, message, turn):
     if turn % 5 == 0:
         generate_reflections(session_id, turn)
 
+@app.get("/")
+def health():
+    return {"status": "alive"}
 
 # ---------------------------------------------------------
 # CHAT ENDPOINT
