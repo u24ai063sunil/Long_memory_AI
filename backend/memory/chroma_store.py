@@ -6,7 +6,8 @@ client = chromadb.Client(
 )
 
 embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="all-MiniLM-L6-v2"
+    # model_name="all-MiniLM-L6-v2"
+    model_name="paraphrase-MiniLM-L3-v2"
 )
 
 memory_collection = client.get_or_create_collection(
