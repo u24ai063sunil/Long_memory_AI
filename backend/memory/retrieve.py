@@ -1,4 +1,4 @@
-from backend.memory.chroma_store import memory_collection
+from memory.chroma_store import memory_collection
 
 
 def retrieve_memories(session_id, query, k=5):

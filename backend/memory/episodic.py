@@ -1,6 +1,6 @@
-from backend.memory.retrieve import retrieve_memories
-from backend.memory.add_memory import store_memory_async
-from backend.memory.schema import Memory
+from memory.retrieve import retrieve_memories
+from memory.add_memory import store_memory_async
+from memory.schema import Memory
 
 
 def summarize_episode(session_id, turn):

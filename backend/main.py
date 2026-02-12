@@ -1,15 +1,15 @@
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 
-from backend.utils.session import get_turn
-from backend.llm.extractor import extract_memory
-from backend.memory.schema import Memory
-from backend.memory.add_memory import store_memory_async
-from backend.memory.retrieve import retrieve_memories
-from backend.memory.rank import rank_memories
-from backend.llm.context_builder import build_context
-from backend.llm.generator import generate_reply
-from backend.reflection.generate_reflection import generate_reflections
+from utils.session import get_turn
+from llm.extractor import extract_memory
+from memory.schema import Memory
+from memory.add_memory import store_memory_async
+from memory.retrieve import retrieve_memories
+from memory.rank import rank_memories
+from llm.context_builder import build_context
+from llm.generator import generate_reply
+from reflection.generate_reflection import generate_reflections
 
 
 app = FastAPI()

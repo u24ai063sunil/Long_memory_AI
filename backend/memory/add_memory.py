@@ -4,8 +4,8 @@ from datetime import datetime
 from sentence_transformers import SentenceTransformer, util
 import numpy as np
 
-from backend.memory.chroma_store import memory_collection
-from backend.memory.retrieve import retrieve_by_key
+from memory.chroma_store import memory_collection
+from memory.retrieve import retrieve_by_key
 
 
 # ---------------------------------------------------------
