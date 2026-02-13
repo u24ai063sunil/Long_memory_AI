@@ -2,10 +2,10 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 
-from backend.memory.retrieve import retrieve_memories
-from backend.memory.schema import Memory
-from backend.memory.add_memory import store_memory
-from backend.utils.session import get_turn
+from memory.retrieve import retrieve_memories
+from memory.schema import Memory
+from memory.add_memory import store_memory
+from utils.session import get_turn
 
 load_dotenv()
 
