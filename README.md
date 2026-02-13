@@ -23,7 +23,7 @@
 - [Use Cases](#-use-cases)
 - [Future Roadmap](#-future-roadmap)
 - [Contributing](#-contributing)
-- [License](#-license)
+
 
 ---
 
