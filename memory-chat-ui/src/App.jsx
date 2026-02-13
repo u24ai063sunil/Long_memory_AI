@@ -43,9 +43,10 @@ function App() {
     setMessages(prev => [...prev, userMsg]);
 
     setTyping(true);
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/chat", {
+      const res = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

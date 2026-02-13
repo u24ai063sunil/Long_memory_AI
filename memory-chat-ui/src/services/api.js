@@ -1,8 +1,10 @@
 import axios from "axios";
 import { getSessionId } from "../utils/session";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const API = axios.create({
-    baseURL: "http://localhost:8000",
+    baseURL: `${API_URL}`,
 });
 
 export async function sendMessage(message) {
