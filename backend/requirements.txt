@@ -1,8 +1,17 @@
+# fastapi
+# uvicorn[standard]
+# python-dotenv
+# groq
+# chromadb
+# sentence-transformers
+# pydantic
+# numpy
 fastapi
 uvicorn[standard]
 python-dotenv
 groq
-chromadb
-sentence-transformers
 pydantic
+requests
 numpy
+chromadb
+tinydb
