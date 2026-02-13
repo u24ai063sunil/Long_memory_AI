@@ -447,7 +447,6 @@ If you find this project useful, please consider giving it a star! ⭐
 
 **Moving from stateless Chatbots to persistent Life Companions.**
 
-Made with ❤️ by Team Long_Memory
 
 [Documentation](https://github.com/yourusername/long-memory-ai/wiki) • [Demo](https://your-app.vercel.app) • [Report Bug](https://github.com/yourusername/long-memory-ai/issues)
 
